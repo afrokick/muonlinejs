@@ -1,0 +1,19 @@
+{
+  "name": "bun-server",
+  "module": "src/server/main.ts",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "proxy": "bun run --watch proxy/main.ts",
+    "generate": "bun run common/packets/generate.ts",
+    "tsc": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "bun-types": "^1.1.21",
+    "vite": "^5.3.5",
+    "typescript": "^5.5.4"
+  },
+  "dependencies": {
+    "mitt": "^3.0.1"
+  }
+}
