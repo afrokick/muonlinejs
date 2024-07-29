@@ -83,7 +83,7 @@ export function createSocket({ wsAddress, tcpIP, tcpPort }: Options) {
         return;
       } else {
         packet = new DataView(decryptedPacket.buffer);
-        console.log(`${LOG_PREFIX}Decrypted packet 0x${byteToString(packetType)}, lng: ${length}:`, decryptedPacket);
+        DEBUG_LOG && console.log(`${LOG_PREFIX}Decrypted packet 0x${byteToString(packetType)}, lng: ${length}:`, decryptedPacket);
       }
     }
 
