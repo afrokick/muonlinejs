@@ -2,6 +2,8 @@
 
 Worked with [OpenMU](https://github.com/MUnique/OpenMU) server!
 
+LIVE DEMO: https://mujs.pages.dev
+
 ### How to run
 
 0. You need to have [Bun](https://bun.sh) installed.
