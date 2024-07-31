@@ -4,24 +4,38 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "proxy": "bun run --watch proxy/main.ts",
     "generate": "bun run common/packets/generate.ts",
     "tsc": "tsc --noEmit"
   },
   "devDependencies": {
+    "@gltf-transform/core": "4",
+    "@gltf-transform/extensions": "4",
+    "@gltf-transform/functions": "4",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "bun-types": "^1.1.21",
     "less": "^4.2.0",
     "typescript": "^5.5.4",
-    "vite": "^5.3.5"
+    "vite": "^5.3.5",
+    "vite-plugin-gltf": "4"
   },
   "dependencies": {
+    "@babylonjs/core": "^7.17.2",
+    "@babylonjs/loaders": "^7.17.2",
+    "@babylonjs/materials": "^7.17.2",
+    "miniplex": "^2.0.0",
     "mitt": "^3.0.1",
     "mobx": "^6.13.1",
     "mobx-react-lite": "^4.0.7",
+    "nanoid": "^5.0.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "engines": {
+    "node": "20"
   }
 }
