@@ -9,13 +9,13 @@ export function createTerrainMaterial(scene: Scene, { name, }: { name: string; }
 }) {
   const finalColorStr = config.texturesData.map((_, i) => {
     const textureData = config.texturesData[i];
+    const isWater = i === 5;// || (Texture == 11 && (gMapManager.IsPKField() || IsDoppelGanger2()) //TODO
     return `
     if (m1 >= ${i}.0 && m1 < ${i}.1) {
-      ${FINAL_COLOR_VAR_NAME} += texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(1)}).rgb;
+      ${FINAL_COLOR_VAR_NAME} += texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(1)}${isWater ? ` + vec2(WaterMove,GrassWind)`:''}).rgb;
   }
-
   if (m2 >= ${i}.0 && m2 < ${i}.1) {
-      ${FINAL_COLOR_VAR_NAME} += texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(1)}).rgb * a;
+      ${FINAL_COLOR_VAR_NAME} += texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(1)}${isWater ? ` + vec2(WaterMove,GrassWind)`:''}).rgb * a;
   }
   `;
   }).join('');
@@ -56,7 +56,12 @@ export function createTerrainMaterial(scene: Scene, { name, }: { name: string; }
     float a = alpha.r;
 
     vec3 light = alpha.gba;
-   
+
+    float WaterMove = float(int(time*100.0) % 20000) * 0.005;
+    float WindSpeed = float(int(time*100.0) % (360000 * 2)) * 0.002;
+    float xf = 1.0; //need to get from attrivute
+    float GrassWind = sin(WindSpeed + xf * 5.0) * 2.0;
+  
     vec3 ${FINAL_COLOR_VAR_NAME} = vec3(0.0);
     ${finalColorStr}
 
