@@ -18,6 +18,7 @@ function CreateGroundFromHeightMapVertexData(buffer: Float32Array): VertexData {
   const positions = [];
   const normals = [];
   const uvs = [];
+  const ids = [];
   let y, x;
 
   const sub = 256;
@@ -41,6 +42,7 @@ function CreateGroundFromHeightMapVertexData(buffer: Float32Array): VertexData {
       positions.push(position.x, position.y, position.z);
       normals.push(0, 0, 0);
       uvs.push((x - 4) / (sub), 1 - y / sub);
+      ids.push(x, y);
     }
   }
 
@@ -93,6 +95,7 @@ function CreateGroundFromHeightMapVertexData(buffer: Float32Array): VertexData {
   vertexData.positions = positions;
   vertexData.normals = normals;
   vertexData.uvs = uvs;
+  vertexData.uvs2 = ids;
 
   return vertexData;
 }

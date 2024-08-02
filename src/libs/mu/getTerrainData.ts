@@ -122,7 +122,13 @@ export async function getTerrainData(scene: Scene, map: ENUM_WORLD) {
     const t = texture.Texture.clone();
     t.updateSamplingMode(Texture.LINEAR_LINEAR);
     t.anisotropicFilteringLevel = 1;
-    return { texture: t, scale: t.getSize().height };
+
+    const size = t.getSize().height;
+    let scale = size;
+    if (scale === 256) {
+      scale /= 4;
+    }
+    return { texture: t, scale };
   });
   // tm.diffuseTexture = texturesData[0].texture;
 
