@@ -1,3 +1,6 @@
+import { type Scene } from "@babylonjs/core";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+
 // like 'C1 04 00 01'
 export function stringifyPacket(buffer: Buffer) {
   return Array.from(new Uint8Array(buffer)).map(byteToString).join(" ");
@@ -124,3 +127,58 @@ export function SetBoolean(oldValue: Byte, value: Boolean, leftShifted: Int): By
 //   }
 //   return oldValue;
 // }
+
+export function ArrayCopy<TArray extends Uint8Array | Uint16Array>(buffer: TArray, srcOffset: Int, dst: TArray, dstOffset: Int, count: Int): void {
+  for (let i = 0; i < count; i++) {
+    dst[dstOffset + i] = buffer[srcOffset + i];
+  }
+}
+
+export async function downloadBytesBuffer(url: string) {
+  const req = await fetch(url);
+  const ab = await req.arrayBuffer();
+  const buffer = new Uint8Array(ab);
+
+  return buffer;
+}
+
+// TODO we only need bytes buffer? Try to omit bjs dependency...
+export async function readOJZBufferAsJPEGBuffer(scene: Scene, filename: string, ozjBuffer: Uint8Array) {
+  const fileSize = ozjBuffer.length;
+  if (fileSize < 24) {
+    throw new Error(`The file ${filename} is too small to be as a OZJ`);
+  }
+
+  // Skip first 24 bytes, because these are added by the OZJ format
+  // const jpegSize = fileSize - 24;
+
+  // let jpegSubsamp = TJSAMP_444;
+  // let jpegColorspace = TJCS_RGB;
+
+  const fName = filename.split('/').at(-1)?.split('.')[0];
+  const texture = new Texture(`data:${fName}.jpg`, scene.getEngine()!, true, false, Texture.NEAREST_NEAREST, null, null, ozjBuffer.slice(24), true);
+
+  return new Promise<{ BufferFloat: Float32Array; Texture: Texture; }>(r => {
+    texture.onLoadObservable.addOnce(async () => {
+      const size = texture.getSize();
+      let jpegWidth = size.width;
+      let jpegHeight = size.height;
+
+      const pixels = new Uint8Array((await texture.readPixels()!).buffer);
+
+      const bufferSize = jpegWidth * jpegHeight * 3;
+      const BufferFloat = new Float32Array(bufferSize);
+
+      let j = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        BufferFloat[j++] = pixels[i] / 255;
+        BufferFloat[j++] = pixels[i + 1] / 255;
+        BufferFloat[j++] = pixels[i + 2] / 255;
+      }
+
+      r({ BufferFloat, Texture: texture });
+    });
+  });
+  // decompress into the buffer
+  // result = tjDecompress2(tjhandle, jpegBuf, jpegSize, buffer, jpegWidth, 0, jpegHeight, TJPF_RGB, TJFLAG_BOTTOMUP);
+}

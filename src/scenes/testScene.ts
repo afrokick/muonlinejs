@@ -1,5 +1,5 @@
 import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { ArcRotateCamera, Color3, Color4, DirectionalLight, Engine, HemisphericLight, Scene, TransformNode, Vector3 } from "../libs/babylon/exports";
+import { ArcRotateCamera, Color3, Color4, CreateBox, DirectionalLight, Engine, HemisphericLight, Scene, TransformNode, Vector3 } from "../libs/babylon/exports";
 import { addInspectorForScene } from "../libs/babylon/utils";
 
 export class TestScene extends Scene {
@@ -38,6 +38,9 @@ export class TestScene extends Scene {
     camera.keysLeft.push(65);
     camera.keysDown.push(83);
     camera.keysRight.push(68);
+
+    CreateBox('0_0',{size:20},this).position.setAll(0);
+    CreateBox('0_0',{size:20},this).position.set(50,0,0);
 
 
     this.defaultCamera = camera;

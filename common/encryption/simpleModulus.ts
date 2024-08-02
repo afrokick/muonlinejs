@@ -1,4 +1,4 @@
-import { castToByte, integerDevision, castToUInt, castToUShort, getPacketHeaderSize, getPacketSize, setPacketSize } from "../utils";
+import { castToByte, integerDevision, castToUInt, castToUShort, getPacketHeaderSize, getPacketSize, setPacketSize, ArrayCopy } from "../utils";
 
 class SimpleModulusKeys {
   public ModulusKey: number[] = [0, 0, 0, 0];
@@ -66,12 +66,6 @@ function BufferBlockCopy<TSourceArray extends Uint8Array | Uint16Array | Uint32A
     for (let i = 0; i < bytesCount; i++) {
       d.setUint8(dstOffset + i, s.getUint8(srcOffset + i));
     }
-  }
-}
-
-function ArrayCopy<TArray extends Uint8Array | Uint16Array>(buffer: TArray, srcOffset: Int, dst: TArray, dstOffset: Int, count: Int): void {
-  for (let i = 0; i < count; i++) {
-    dst[dstOffset + i] = buffer[srcOffset + i];
   }
 }
 
