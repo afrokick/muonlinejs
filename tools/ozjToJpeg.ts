@@ -14,11 +14,11 @@ for (const ozjFileName of glob.scanSync(DATA_FOLDER)) {
 
   const ozjFilePath = DATA_FOLDER + ozjFileName;
 
-  const jpgFilePath = ozjFilePath.replace(OZJ_EXT, JPG_EXT);
+  const jpgFilePath = ozjFilePath.substring(0, ozjFilePath.length - 4) + JPG_EXT;
 
   const ozjFile = Bun.file(ozjFilePath);
   const buffer = new Uint8Array(await ozjFile.arrayBuffer());
-  const jpegBuffer = buffer.slice(24);
+  const jpegBuffer = buffer.slice(24); // remove first 24 bytes as it is a OZJ header
 
   try {
     //remove old file

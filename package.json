@@ -9,7 +9,8 @@
     "proxy": "bun run --watch proxy/main.ts",
     "generate": "bun run common/packets/generate.ts",
     "tsc": "tsc --noEmit",
-    "utils:ozjToJpeg": "bun run tools/ozjToJpeg.ts"
+    "utils:ozjToJpeg": "bun run tools/ozjToJpeg.ts",
+    "utils:oztToTga": "bun run tools/oztToTga.ts"
   },
   "devDependencies": {
     "@gltf-transform/core": "4",
