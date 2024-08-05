@@ -56,6 +56,7 @@ window.addEventListener(
 Store.connectToConnectServer();
 
 const scene = new TestScene(engine);
+(window as any).__scene = scene;
 loadMapIntoScene(scene);
 
 engine.runRenderLoop(() => {
