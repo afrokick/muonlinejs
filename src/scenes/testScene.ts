@@ -1,6 +1,17 @@
-import { UniversalCamera } from "@babylonjs/core/Cameras/universalCamera";
-import { ArcRotateCamera, Color3, Color4, CreateBox, DirectionalLight, Engine, HemisphericLight, Scene, TransformNode, Vector3 } from "../libs/babylon/exports";
-import { addInspectorForScene } from "../libs/babylon/utils";
+import { UniversalCamera } from '@babylonjs/core/Cameras/universalCamera';
+import {
+  ArcRotateCamera,
+  Color3,
+  Color4,
+  CreateBox,
+  DirectionalLight,
+  Engine,
+  HemisphericLight,
+  Scene,
+  TransformNode,
+  Vector3,
+} from '../libs/babylon/exports';
+import { addInspectorForScene } from '../libs/babylon/utils';
 
 export class TestScene extends Scene {
   defaultCamera: UniversalCamera;
@@ -22,7 +33,11 @@ export class TestScene extends Scene {
     // camera.minZ = 0.1;
     // camera.position.set(135, 50, 130);
 
-    const camera = new UniversalCamera('UniversalCamera', new Vector3(0, 10, 0), this);
+    const camera = new UniversalCamera(
+      'UniversalCamera',
+      new Vector3(0, 10, 0),
+      this
+    );
 
     camera.rotation.y = -Math.PI / 2;
     camera.rotation.x = Math.PI / 4;
@@ -30,7 +45,9 @@ export class TestScene extends Scene {
     camera.angularSensibility = 4000;
     camera.minZ = 0.01;
     camera.maxZ = 1000;
-    camera.position.set(135, 20, 130);
+    camera.position.set(135, 15, 130);
+
+    // camera.position.set(165, 15, 110); // hanging
 
     camera.attachControl();
 
@@ -39,9 +56,8 @@ export class TestScene extends Scene {
     camera.keysDown.push(83);
     camera.keysRight.push(68);
 
-    CreateBox('0_0',{size:20},this).position.setAll(0);
-    CreateBox('0_0',{size:20},this).position.set(50,0,0);
-
+    CreateBox('0_0', { size: 20 }, this).position.setAll(0);
+    CreateBox('0_0', { size: 20 }, this).position.set(50, 0, 0);
 
     this.defaultCamera = camera;
 
@@ -54,14 +70,20 @@ export class TestScene extends Scene {
 
     addInspectorForScene(this);
 
-    this.transformedRoot = new TransformNode("_gltf_root", this);
+    this.transformedRoot = new TransformNode('_gltf_root', this);
     this.transformedRoot.scaling.z = -1;
     this.transformedRoot.rotation.y = Math.PI;
 
-    const light2 = new DirectionalLight('DirectionalLight2', new Vector3(0, 1, -2), this);
+    const light2 = new DirectionalLight(
+      'DirectionalLight2',
+      new Vector3(0, 1, -2),
+      this
+    );
     light2.intensity = 3;
-  
+
     const light3 = new HemisphericLight('light', new Vector3(0, 1, 0), this);
     light3.intensity = 1;
+
+    // this.useRightHandedSystem = true;
   }
 }

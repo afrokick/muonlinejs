@@ -13,7 +13,7 @@ function createArrays() {
     alpha[i] = 0.0;
     // TerrainGrassTexture[i] = (rand() % 4) / 4.0;
     // #ifdef ASG_ADD_MAP_KARUTAN;
-    // g_fTerrainGrassWind1[i] = 0.0f;
+    // g_fTerrainGrassWind1[i] = 0;
     // #endif;
   }
 

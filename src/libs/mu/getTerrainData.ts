@@ -1,16 +1,31 @@
-import { RawTexture, Scene, StandardMaterial, Texture, Vector3 } from "../babylon/exports";
-import { CreateGroundFromHeightMap } from "./customGroundMesh";
-import { createTerrainMaterial } from "./terrainMaterial";
-import { ENUM_WORLD } from "../../../common";
-import { downloadBytesBuffer, readOJZBufferAsJPEGBuffer } from "../../../common/utils";
-import { parseTerrainAttribute } from "../../../common/terrain/parseTerrainAttribute";
-import { parseTerrainHeight } from "../../../common/terrain/parseTerrainHeight";
-import { parseTerrainMapping } from "../../../common/terrain/parseTerrainMapping";
-import { parseTerrainLight } from "../../../common/terrain/parseTerrainLight";
-import { getTilesList } from "../../../common/terrain/getTilesList";
-import { TERRAIN_SIZE } from "../../../common/terrain/consts";
+import {
+  RawTexture,
+  Scene,
+  StandardMaterial,
+  Texture,
+  Vector3,
+} from '../babylon/exports';
+import { CreateGroundFromHeightMap } from './customGroundMesh';
+import { createTerrainMaterial } from './terrainMaterial';
+import { ENUM_WORLD } from '../../../common';
+import {
+  downloadBytesBuffer,
+  readOJZBufferAsJPEGBuffer,
+} from '../../../common/utils';
+import { parseTerrainAttribute } from '../../../common/terrain/parseTerrainAttribute';
+import { parseTerrainHeight } from '../../../common/terrain/parseTerrainHeight';
+import { parseTerrainMapping } from '../../../common/terrain/parseTerrainMapping';
+import { parseTerrainLight } from '../../../common/terrain/parseTerrainLight';
+import { getTilesList } from '../../../common/terrain/getTilesList';
+import { TERRAIN_SIZE } from '../../../common/terrain/consts';
+import { parseTerrainObjects } from '../../../common/terrain/parseTerrainObjects';
+import { ENUM_OBJECTS } from '../../../common/objects/enum';
+import { CMapManager_Load } from '../../../common/zzzMapManagerLoad';
 
-function createTexturesAtlasFromRects(scene: Scene, data: { map1: Uint8Array, map2: Uint8Array, }) {
+function createTexturesAtlasFromRects(
+  scene: Scene,
+  data: { map1: Uint8Array; map2: Uint8Array }
+) {
   const count = data.map1.length;
 
   const rectsArray = new Uint8Array(TERRAIN_SIZE * TERRAIN_SIZE * 4);
@@ -27,11 +42,12 @@ function createTexturesAtlasFromRects(scene: Scene, data: { map1: Uint8Array, ma
 
   const rectsTexture = RawTexture.CreateRGBATexture(
     rectsArray,
-    size, size,
+    size,
+    size,
     scene,
     false,
     false,
-    Texture.NEAREST_NEAREST,
+    Texture.NEAREST_NEAREST
   );
   rectsTexture.isBlocking = false;
   rectsTexture.name = '_AtlasTexture';
@@ -40,7 +56,10 @@ function createTexturesAtlasFromRects(scene: Scene, data: { map1: Uint8Array, ma
   return rectsTexture;
 }
 
-function createAlphaMapTexture(scene: Scene, data: { alpha: Float32Array; lights: Vector3[]; }) {
+function createAlphaMapTexture(
+  scene: Scene,
+  data: { alpha: Float32Array; lights: Vector3[] }
+) {
   const count = data.alpha.length;
 
   const rectsArray = new Uint8Array(TERRAIN_SIZE * TERRAIN_SIZE * 4);
@@ -56,11 +75,12 @@ function createAlphaMapTexture(scene: Scene, data: { alpha: Float32Array; lights
 
   const rectsTexture = RawTexture.CreateRGBATexture(
     rectsArray,
-    size, size,
+    size,
+    size,
     scene,
     false,
     false,
-    Texture.LINEAR_LINEAR,
+    Texture.LINEAR_LINEAR
   );
   rectsTexture.isBlocking = false;
   rectsTexture.name = '_AlphaMap';
@@ -73,27 +93,42 @@ export async function getTerrainData(scene: Scene, map: ENUM_WORLD) {
   const worldNum = map + 1;
   const worldFolder = `./data/World${worldNum}/`;
 
-  const terrainAttributeBytes = await downloadBytesBuffer(`${worldFolder}EncTerrain${worldNum}.att`);
-  const terrainHeightBytes = await downloadBytesBuffer(`${worldFolder}TerrainHeight.OZB`);
-  const terrainMappingBytes = await downloadBytesBuffer(`${worldFolder}EncTerrain${worldNum}.map`);
-  const terrainLightBytes = await downloadBytesBuffer(`${worldFolder}TerrainLight.OZJ`);
+  const terrainAttributeBytes = await downloadBytesBuffer(
+    `${worldFolder}EncTerrain${worldNum}.att`
+  );
+  const terrainHeightBytes = await downloadBytesBuffer(
+    `${worldFolder}TerrainHeight.OZB`
+  );
+  const terrainMappingBytes = await downloadBytesBuffer(
+    `${worldFolder}EncTerrain${worldNum}.map`
+  );
+  const terrainLightBytes = await downloadBytesBuffer(
+    `${worldFolder}TerrainLight.OZJ`
+  );
 
   const terrainHeight = await parseTerrainHeight(terrainHeightBytes);
   const terrainAttrs = await parseTerrainAttribute(terrainAttributeBytes, map);
   const terrainMapping = await parseTerrainMapping(terrainMappingBytes);
 
-  const lightTextureData = await readOJZBufferAsJPEGBuffer(scene, `${worldFolder}TerrainLight.OZJ`, terrainLightBytes);
+  const lightTextureData = await readOJZBufferAsJPEGBuffer(
+    scene,
+    `${worldFolder}TerrainLight.OZJ`,
+    terrainLightBytes
+  );
 
-  const terrainLight = await parseTerrainLight(lightTextureData.BufferFloat, terrainHeight);
+  const terrainLight = await parseTerrainLight(
+    lightTextureData.BufferFloat,
+    terrainHeight
+  );
 
-  // const tileGrass = await OpenJpegBuffer(scene, '${worldFolder}TileGrass01.OZJ');
+  const textures = await Promise.all(
+    getTilesList(map).map(async t => {
+      const filePath = `./data/World${worldNum}/${t}.OZJ`;
+      const ozjBytes = await downloadBytesBuffer(filePath);
 
-  const textures = await Promise.all(getTilesList(map).map(async t => {
-    const filePath = `./data/World${worldNum}/${t}.OZJ`;
-    const ozjBytes = await downloadBytesBuffer(filePath);
-
-    return readOJZBufferAsJPEGBuffer(scene, filePath, ozjBytes);
-  }));
+      return readOJZBufferAsJPEGBuffer(scene, filePath, ozjBytes);
+    })
+  );
 
   const lightTexture = lightTextureData.Texture.clone();
   // const lightData = terrainLight.Lights;
@@ -102,12 +137,24 @@ export async function getTerrainData(scene: Scene, map: ENUM_WORLD) {
   // const texturesBuffer = await downloadBuffer(`./data/World1_new/EncTerrain.map`);
   // const groundMap = MapUtils.parseGround([...texturesBuffer.values()]);
 
-  // const objsBuffer = await downloadBytesBuffer(`./data/World${worldNum}_new/Terrain.obj`);
-  // const objects = MapUtils.parseObjects([...objsBuffer.values()]);
+  const objsBuffer = await downloadBytesBuffer(
+    `./data/World${worldNum}/EncTerrain${worldNum}.obj`
+  );
+  const objects = parseTerrainObjects(objsBuffer);
 
-  // console.log({  objects });
+  await CMapManager_Load(map);
 
-  const terrain = CreateGroundFromHeightMap('_abc', terrainHeight, { width: TERRAIN_SIZE, height: TERRAIN_SIZE, subdivisions: TERRAIN_SIZE, }, scene);
+  // console.log({  objects:objects.map(o=>{
+  //   o.Name = ENUM_OBJECTS[o.id];
+  //   return o;
+  // }) });
+
+  const terrain = CreateGroundFromHeightMap(
+    '_abc',
+    terrainHeight,
+    { width: TERRAIN_SIZE, height: TERRAIN_SIZE, subdivisions: TERRAIN_SIZE },
+    scene
+  );
   // const tm = new StandardMaterial('ground_mm', scene);
   // tm.disableLighting = true;
   // tm.emissiveColor.setAll(1);
@@ -132,17 +179,24 @@ export async function getTerrainData(scene: Scene, map: ENUM_WORLD) {
   });
   // tm.diffuseTexture = texturesData[0].texture;
 
-  terrain.material = createTerrainMaterial(scene, { name: 'TerrainMaterial' }, {
-    texturesData,
-    atlas: createTexturesAtlasFromRects(scene, {
-      map1: terrainMapping.layer1,
-      map2: terrainMapping.layer2,
-    }),
-    alphaMap: createAlphaMapTexture(scene, {
-      alpha: terrainMapping.alpha,
-      lights: terrainLight,
-    })
-  });
+  terrain.material = createTerrainMaterial(
+    scene,
+    { name: 'TerrainMaterial' },
+    {
+      texturesData,
+      atlas: createTexturesAtlasFromRects(scene, {
+        map1: terrainMapping.layer1,
+        map2: terrainMapping.layer2,
+      }),
+      alphaMap: createAlphaMapTexture(scene, {
+        alpha: terrainMapping.alpha,
+        lights: terrainLight,
+      }),
+    }
+  );
 
-  // return { objects };
+  //TODO why?
+  terrain.position.x -= 4;
+
+  return { objects };
 }

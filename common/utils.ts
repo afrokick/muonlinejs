@@ -182,3 +182,7 @@ export async function readOJZBufferAsJPEGBuffer(scene: Scene, filename: string, 
   // decompress into the buffer
   // result = tjDecompress2(tjhandle, jpegBuf, jpegSize, buffer, jpegWidth, 0, jpegHeight, TJPF_RGB, TJFLAG_BOTTOMUP);
 }
+
+export function toRadians(angle: number) {
+  return angle * (Math.PI / 180);
+}
