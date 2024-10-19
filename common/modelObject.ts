@@ -8,15 +8,67 @@ import {
   StandardMaterial,
   Texture,
   TransformNode,
+  VertexBuffer,
   type Scene,
 } from '@babylonjs/core';
 import { OpenTga } from './textures/test';
+import { CustomMaterial } from '../src/libs/babylon/exports';
+import { getEmptyTexture } from '../src/libs/babylon/emptyTexture';
 
+const MAX_BONES = 32;
+export function createCustomMaterial(
+  scene: Scene,
+  opts: { withTint?: boolean }
+) {
+  const mat = new CustomMaterial('TexturesAtlasMaterial', scene);
+  mat.fogEnabled = true;
+  mat.backFaceCulling = false;
+  mat.transparencyMode = 1;
+  mat.useAlphaFromDiffuseTexture = true;
+  mat.specularColor = Color3.Black();
+
+  mat.AddAttribute(VertexBuffer.UV2Kind);
+  mat.AddUniform(`bonesArray[${MAX_BONES}]`, 'mat4', undefined);
+
+  mat.Vertex_After_WorldPosComputed(`
+    float boneIndexFloat = uv2.x;
+    int boneIndex = int(boneIndexFloat);
+    finalWorld = world * bonesArray[boneIndex];
+     worldPos = finalWorld*vec4(positionUpdated, 1.0);
+     normalWorld = mat3(finalWorld);
+    // vNormalW = normalize(normalWorld*normalUpdated);
+    vNormalW = normalize(normalWorld*vec3(0.0,0.0,0.5));
+  `);
+
+  // let time = 0;
+  scene.onReadyObservable.addOnce(() => {
+    // scene.onBeforeRenderObservable.add(() => {
+    //   time += scene.getEngine()!.getDeltaTime()! / 1000;
+    // });
+
+    mat.onBindObservable.add(ev => {
+      const effect = mat.getEffect();
+      if (!effect) return;
+      // effect.setFloat('time', time);
+      const array = ev.metadata?.array;
+      if (!array) return;
+      effect.setMatrices('bonesArray', array);
+    });
+  });
+
+  mat.unfreeze();
+
+  return mat;
+}
+
+const textureCache: Record<string, RawTexture> = {};
 async function loadOZTTexture(
   filePath: string,
   scene: Scene,
   invertY: boolean
 ) {
+  if (textureCache[filePath]) return textureCache[filePath];
+
   const tga = await OpenTga(filePath);
 
   const t = RawTexture.CreateRGBATexture(
@@ -28,7 +80,10 @@ async function loadOZTTexture(
     invertY,
     Texture.LINEAR_LINEAR
   );
+  t.anisotropicFilteringLevel = 1;
   t.name = filePath;
+
+  textureCache[filePath] = t;
   return t;
 }
 
@@ -39,6 +94,130 @@ type GameTime = {
     TotalSeconds: number;
   };
 };
+
+const materialCache: Record<string, StandardMaterial> = {};
+
+function getMaterial(
+  bmd: BMD,
+  meshIndex: number,
+  scene: Scene,
+  worldNum: number,
+  mesh: BMD['Meshes'][number]
+) {
+  const uniqName = bmd.Name + '_mesh' + meshIndex;
+  // const uniqName = '_mat_';
+
+  if (materialCache[uniqName]) return materialCache[uniqName];
+
+  const m = createCustomMaterial(scene, {});
+  m.name = uniqName;
+  m.backFaceCulling = false;
+  m.diffuseTexture = getEmptyTexture(scene);
+  m.emissiveTexture = getEmptyTexture(scene);
+
+  const textureName = mesh.TexturePath;
+
+  const objectsFolder = `./data/Object${worldNum}/`;
+
+  if (textureName.toLowerCase().endsWith('.tga')) {
+    const textureFilePath = objectsFolder + textureName.replace('.tga', '.OZT');
+
+    loadOZTTexture(textureFilePath, scene, true).then(t => {
+      t.hasAlpha = true;
+      m.diffuseTexture = t;
+    });
+
+    m.transparencyMode = 2;
+    m.useAlphaFromDiffuseTexture = true;
+  } else {
+    const textureFilePath = objectsFolder + textureName;
+
+    const t = new Texture(textureFilePath, scene, false, false);
+    m.diffuseTexture = t;
+  }
+
+  materialCache[uniqName] = m;
+
+  return m;
+}
+
+const EmptyBone = Matrix.Identity();
+
+function createMeshesForBMD(
+  scene: Scene,
+  bmd: BMD,
+  worldNum: number,
+  parent: TransformNode
+) {
+  return bmd.Meshes.map((mesh, meshIndex) => {
+    const customMesh = new Mesh(bmd.Name + '_mesh' + meshIndex, scene);
+    // customMesh.showBoundingBox = true;
+
+    customMesh.scaling.setAll(1);
+
+    customMesh.setParent(parent);
+    customMesh.position.setAll(0);
+    customMesh.rotationQuaternion = null;
+    customMesh.rotation.setAll(0);
+    customMesh.metadata = {
+      array: [],
+    };
+
+    const positions: number[] = []; //vec3
+    const indices: number[] = []; //float
+    const uvs: number[] = []; //vec2
+    const normals: number[] = []; //vec3
+    const colors: number[] = []; //vec4
+    const boneIndex: number[] = [];
+
+    let pi = 0;
+
+    for (let i = 0; i < mesh.Triangles.length; i++) {
+      const triangle = mesh.Triangles[i];
+
+      for (let j = 0; j < triangle.Polygon; j++) {
+        const vertexIndex = triangle.VertexIndex[j];
+        const vertex = mesh.Vertices[vertexIndex];
+
+        const normalIndex = triangle.NormalIndex[j];
+        const normal = mesh.Normals[normalIndex].Normal;
+        const coordIndex = triangle.TexCoordIndex[j];
+        const texCoord = mesh.TexCoords[coordIndex];
+
+        const pos = vertex.Position;
+
+        indices.push(pi);
+        positions.push(pos.x, pos.y, pos.z);
+        normals.push(normal.x, normal.y, normal.z);
+        uvs.push(texCoord.U, texCoord.V);
+        colors.push(1, 1, 1, 1);
+
+        boneIndex.push(vertex.Node, 0);
+
+        pi++;
+      }
+    }
+
+    const vertexData = new VertexData();
+
+    vertexData.positions = positions;
+    vertexData.indices = indices;
+    vertexData.normals = normals;
+    vertexData.uvs = uvs;
+    vertexData.uvs2 = boneIndex;
+    vertexData.colors = colors;
+
+    vertexData.applyToMesh(customMesh, false);
+
+    customMesh.material = getMaterial(bmd, meshIndex, scene, worldNum, mesh);
+
+    return customMesh;
+  });
+}
+
+const tmpMatrix = Matrix.Identity();
+const tmpQ = Quaternion.Identity();
+const tmpVec3 = Vector3.Zero();
 
 export class ModelObject {
   HiddenMesh = -1;
@@ -52,9 +231,8 @@ export class ModelObject {
   Visible = true;
 
   _invalidatedBuffers = true;
-  _meshesVertexData: VertexData[];
-  // private _boneVertexBuffers: any[];
-  // private _boneIndexBuffers: any[];
+  // _meshesVertexData: VertexData[];
+  _meshesBonesData: Float32Array[];
   private _dataTextures: any[] = [];
   private _priorAction: Int = 0;
   Light = new Vector3(0, 0, 0);
@@ -74,47 +252,17 @@ export class ModelObject {
     this._node = new TransformNode(bmd.Name, this.scene);
     this._node.rotationQuaternion = null;
 
-    this._meshes = bmd.Meshes.map((mesh, meshIndex) => {
-      const customMesh = new Mesh('custom' + meshIndex, scene);
+    this._meshes = createMeshesForBMD(scene, bmd, worldNum, this._node);
 
-      customMesh.showBoundingBox = true;
-
-      const m = new StandardMaterial(bmd.Name + '_mesh' + meshIndex, scene);
-      m.specularColor.setAll(0);
-      m.backFaceCulling = false;
-
-      customMesh.scaling.setAll(1);
-      customMesh.material = m;
-
-      customMesh.setParent(this._node);
-      customMesh.position.setAll(0);
-      customMesh.rotationQuaternion = null;
-      customMesh.rotation.setAll(0);
-
-      const textureName = mesh.TexturePath;
-
-      const objectsFolder = `./data/Object${worldNum}/`;
-
-      if (textureName.toLowerCase().endsWith('.tga')) {
-        const textureFilePath =
-          objectsFolder + textureName.replace('.tga', '.OZT');
-
-        loadOZTTexture(textureFilePath, scene, true).then(t => {
-          t.hasAlpha = true;
-          m.diffuseTexture = t;
-        });
-
-        m.transparencyMode = 2;
-        m.useAlphaFromDiffuseTexture = true;
-      } else {
-        const textureFilePath = objectsFolder + textureName;
-
-        const t = new Texture(textureFilePath, scene, false, false);
-        m.diffuseTexture = t;
-      }
-
-      return customMesh;
+    this.BoneTransform = new Array(this.Model.Bones.length).fill(null);
+    this.BoneTransform.forEach((_, i) => {
+      this.BoneTransform[i] = Matrix.Identity();
     });
+
+    // this._meshesVertexData = new Array(bmd.Meshes.length).fill(null);
+    this._meshesBonesData = new Array(bmd.Meshes.length)
+      .fill(null)
+      .map(i => new Float32Array(MAX_BONES * 16));
   }
 
   load() {
@@ -145,7 +293,7 @@ export class ModelObject {
   }
 
   Draw(gameTime: GameTime): void {
-    if (!this.Visible || this._meshesVertexData == null) return;
+    if (!this.Visible) return;
     // GraphicsDevice.DepthStencilState = DepthStencilState.Default;
     this.DrawModel(false);
     // base.Draw(gameTime);
@@ -179,15 +327,18 @@ export class ModelObject {
   }
 
   DrawMesh(mesh: Int): void {
-    if (this.HiddenMesh === mesh || this._meshesVertexData == null) return;
+    if (this.HiddenMesh === mesh) return;
 
     // const texture = this._boneTextures[mesh];
     // const vertexBuffer: VertexBuffer = this._boneVertexBuffers[mesh];
     // const indexBuffer: IndexBuffer = this._boneIndexBuffers[mesh];
     // const primitiveCount = indexBuffer.IndexCount / 3;
 
-    const vertexData = this._meshesVertexData[mesh];
-    const primitiveCount = vertexData.indices!.length / 3;
+    // const vertexData = this._meshesVertexData[mesh];
+
+    // if (vertexData == null) return;
+
+    // const primitiveCount = vertexData.indices!.length / 3;
 
     // this._effect.Parameters["Texture"]?.SetValue(texture);
 
@@ -204,7 +355,9 @@ export class ModelObject {
     //     GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, primitiveCount);
     // }
 
-    vertexData.applyToMesh(this._meshes[mesh]);
+    // vertexData.applyToMesh(this._meshes[mesh], true);
+    // vertexData.updateMesh(this._meshes[mesh]);
+    this._meshes[mesh].metadata.array = this._meshesBonesData[mesh];
   }
 
   // DrawShadowMesh( mesh:Int):void{
@@ -285,10 +438,7 @@ export class ModelObject {
     const currentActionData = this.Model.Actions[this.CurrentAction];
 
     if (currentActionData.NumAnimationKeys <= 1) {
-      if (
-        this._priorAction != this.CurrentAction ||
-        this.BoneTransform == null
-      ) {
+      if (this._priorAction != this.CurrentAction) {
         this.generateBoneMatrix(this.CurrentAction, 0, 0, 0);
         this._priorAction = this.CurrentAction;
       }
@@ -332,9 +482,6 @@ export class ModelObject {
     nextAnimationFrame: Int,
     interpolationFactor: Float
   ): void {
-    this.BoneTransform ??= new Array(this.Model.Bones.length).fill(
-      Matrix.Identity()
-    );
     const currentActionData = this.Model.Actions[currentAction];
     let changed = false;
 
@@ -351,27 +498,25 @@ export class ModelObject {
       const q1 = bm.Quaternion[currentAnimationFrame];
       const q2 = bm.Quaternion[nextAnimationFrame];
 
-      let boneQuaternion = Quaternion.Slerp(q1, q2, interpolationFactor);
-      // if (i === 1) {
-      //   boneQuaternion = boneQuaternion.add(
-      //     Quaternion.FromEulerAngles(0, 0, Math.PI / 2)
-      //   );
-      // }
-      let matrix = Matrix.Identity();
+      const boneQuaternion = Quaternion.SlerpToRef(
+        q1,
+        q2,
+        interpolationFactor,
+        tmpQ
+      );
+      tmpMatrix.copyFrom(Matrix.IdentityReadOnly);
+      let matrix = tmpMatrix;
 
       Matrix.FromQuaternionToRef(boneQuaternion, matrix);
 
       const position1 = bm.Position[currentAnimationFrame];
       const position2 = bm.Position[nextAnimationFrame];
-      const interpolatedPosition = Vector3.Lerp(
+      const interpolatedPosition = Vector3.LerpToRef(
         position1,
         position2,
-        interpolationFactor
+        interpolationFactor,
+        tmpVec3
       );
-
-      if (i === 1) {
-        interpolatedPosition.scaleInPlace(1);
-      }
 
       if (i === 0 && currentActionData.LockPositions) {
         const row = matrix.getRow(3);
@@ -390,15 +535,13 @@ export class ModelObject {
 
       if (bone.Parent !== -1) {
         const parentMatrix = boneTransforms[bone.Parent];
-        matrix = matrix.multiply(parentMatrix); //TODO check it
-        // matrix = parentMatrix.multiply(matrix); //TODO check it
-        // newMatrix= matrix * parentMatrix;
+        matrix.multiplyToRef(parentMatrix, matrix); //TODO check it
       }
 
       if (!changed && !boneTransforms[i].equalsWithEpsilon(matrix))
         changed = true;
 
-      boneTransforms[i] = matrix;
+      boneTransforms[i].copyFrom(matrix);
     }
 
     if (changed) {
@@ -413,7 +556,6 @@ export class ModelObject {
 
     const meshCount = this.Model.Meshes.length; // Cache mesh count
 
-    this._meshesVertexData ??= new Array(meshCount).fill(null);
     // this._boneVertexBuffers ??= new VertexBuffer[meshCount];
     // this._boneIndexBuffers ??= new IndexBuffer[meshCount];
     // this._boneTextures ??= new Texture2D[meshCount];
@@ -459,14 +601,13 @@ export class ModelObject {
 
       // Color bodyColor = new Color(bodyR, bodyG, bodyB);
 
-      const newVertexData = this.GetModelBuffers(
-        this.Model,
-        meshIndex,
-        Color3.White(),
-        bones
-      );
+      for (let b = 0; b < MAX_BONES; b++)
+        for (let c = 0; c < 16; c++)
+          this._meshesBonesData[meshIndex][b * 16 + c] = (
+            bones[b] ?? EmptyBone
+          ).m[c];
 
-      this._meshesVertexData[meshIndex] = newVertexData;
+      // this._meshesVertexData[meshIndex] = newVertexData;
       // _boneVertexBuffers[meshIndex] = vertexBuffer;
       // _boneIndexBuffers[meshIndex] = indexBuffer;
 
@@ -493,120 +634,30 @@ export class ModelObject {
     this._invalidatedBuffers = false;
   }
 
-  private GetModelBuffers(
-    asset: BMD,
-    meshIndex: Int,
-    color: Color3,
-    boneMatrix: Matrix[]
-  ): VertexData | null {
-    if (boneMatrix == null) return null;
-
-    // if (!_vertexs.TryGetValue(asset, out var vertexs))
-    //     _vertexs.Add(asset, vertexs = new DynamicVertexBuffer[asset.Meshes.Length]);
-
-    // if (!_indexs.TryGetValue(asset, out var indexs))
-    //     _indexs.Add(asset, indexs = new DynamicIndexBuffer[asset.Meshes.Length]);
-
-    const mesh = asset.Meshes[meshIndex];
-
-    const totalVertices = mesh.Triangles.reduce(
-      (acc, triangle) => acc + triangle.Polygon,
-      0
-    );
-    const totalIndices = totalVertices;
-
-    // vertexBuffer = vertexs[meshIndex];
-
-    // vertexBuffer ??= vertexs[meshIndex] = new DynamicVertexBuffer(_graphicsDevice, VertexPositionColorNormalTexture.VertexDeclaration, totalVertices, BufferUsage.None);
-
-    // indexBuffer = indexs[meshIndex];
-
-    // indexBuffer ??= indexs[meshIndex] = new DynamicIndexBuffer(_graphicsDevice, IndexElementSize.ThirtyTwoBits, totalIndices, BufferUsage.None);
-
-    // var vertices = new VertexPositionColorNormalTexture[totalVertices];
-    // var indices = new int[totalIndices];
-
-    const positions: number[] = []; //vec3
-    const indices: number[] = []; //float
-    const uvs: number[] = []; //vec2
-    const normals: number[] = []; //vec3
-    // const colors:number[] = [];//vec4
-
-    let pi = 0;
-
-    for (let i = 0; i < mesh.Triangles.length; i++) {
-      const triangle = mesh.Triangles[i];
-
-      for (let j = 0; j < triangle.Polygon; j++) {
-        const vertexIndex = triangle.VertexIndex[j];
-        const vertex = mesh.Vertices[vertexIndex];
-
-        const normalIndex = triangle.NormalIndex[j];
-        const normal = mesh.Normals[normalIndex].Normal;
-        const coordIndex = triangle.TexCoordIndex[j];
-        const texCoord = mesh.TexCoords[coordIndex];
-
-        const pos = TransformCoordinatesFromFloatsToRef(
-          vertex.Position.x,
-          vertex.Position.y,
-          vertex.Position.z,
-          boneMatrix[vertex.Node],
-          Vector3.Zero()
-        );
-
-        // vertices[pi] = new VertexPositionColorNormalTexture(
-        //     pos,
-        //     color,
-        //     normal,
-        //     new Vector2(texCoord.U, texCoord.V)
-        // );
-
-        indices.push(pi);
-        positions.push(pos.x, pos.y, pos.z);
-        normals.push(normal.x, normal.y, normal.z);
-        uvs.push(texCoord.U, texCoord.V);
-
-        pi++;
-      }
-    }
-
-    // vertexBuffer.SetData(vertices, 0, totalVertices, SetDataOptions.Discard);
-    // indexBuffer.SetData(indices, 0, totalIndices, SetDataOptions.Discard);
-
-    const vertexData = new VertexData();
-
-    vertexData.positions = positions;
-    vertexData.indices = indices;
-    vertexData.normals = normals;
-    vertexData.uvs = uvs;
-
-    return vertexData;
-  }
-
   updateLocation(pos: Vector3, scale: Float, angles: Vector3) {
     this._node.position.copyFrom(pos);
     this._node.rotation.x = angles.x;
-    this._node.rotation.y = angles.y * -1;
+    this._node.rotation.y = angles.y;
     this._node.rotation.z = angles.z;
     this._node.scaling.setAll(scale);
   }
 }
 
-function TransformCoordinatesFromFloatsToRef<T extends Vector3>(
-  x: number,
-  y: number,
-  z: number,
-  transformation: Matrix,
-  result: T
-): T {
-  const m = transformation.m;
-  const rx = x * m[0] + y * m[4] + z * m[8] + m[12];
-  const ry = x * m[1] + y * m[5] + z * m[9] + m[13];
-  const rz = x * m[2] + y * m[6] + z * m[10] + m[14];
-  //const rw = 1 / (x * m[3] + y * m[7] + z * m[11] + m[15]);
+// function TransformCoordinatesFromFloatsToRef<T extends Vector3>(
+//   x: number,
+//   y: number,
+//   z: number,
+//   transformation: Matrix,
+//   result: T
+// ): T {
+//   const m = transformation.m;
+//   const rx = x * m[0] + y * m[4] + z * m[8] + m[12];
+//   const ry = x * m[1] + y * m[5] + z * m[9] + m[13];
+//   const rz = x * m[2] + y * m[6] + z * m[10] + m[14];
+//   //const rw = 1 / (x * m[3] + y * m[7] + z * m[11] + m[15]);
 
-  result.x = rx;
-  result.y = ry;
-  result.z = rz;
-  return result;
-}
+//   result.x = rx;
+//   result.y = ry;
+//   result.z = rz;
+//   return result;
+// }

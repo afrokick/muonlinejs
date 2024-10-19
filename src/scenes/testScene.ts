@@ -12,6 +12,7 @@ import {
   Vector3,
 } from '../libs/babylon/exports';
 import { addInspectorForScene } from '../libs/babylon/utils';
+import { toRadians } from '../../common/utils';
 
 export class TestScene extends Scene {
   defaultCamera: UniversalCamera;
@@ -20,18 +21,6 @@ export class TestScene extends Scene {
 
   constructor(engine: Engine) {
     super(engine);
-
-    // const camera = new ArcRotateCamera(
-    //   'Camera',
-    //   Math.PI * 0.5,
-    //   Math.PI / 2.5,
-    //   10,
-    //   Vector3.Zero(),
-    //   this
-    // );
-    // camera.maxZ = 100;
-    // camera.minZ = 0.1;
-    // camera.position.set(135, 50, 130);
 
     const camera = new UniversalCamera(
       'UniversalCamera',
@@ -43,36 +32,41 @@ export class TestScene extends Scene {
     camera.rotation.x = Math.PI / 4;
     camera.speed = 0.2;
     camera.angularSensibility = 4000;
-    camera.minZ = 0.01;
-    camera.maxZ = 1000;
+    camera.minZ = 0.1;
+    camera.maxZ = 50;
     camera.position.set(135, 15, 130);
+    // camera.upVector.set(0, 0, 1);
 
     // camera.position.set(165, 15, 110); // hanging
 
     camera.attachControl();
+
+    this.fogEnabled = true;
+    this.fogStart = 1;
+    this.fogEnd = 25;
 
     camera.keysUp.push(87);
     camera.keysLeft.push(65);
     camera.keysDown.push(83);
     camera.keysRight.push(68);
 
-    CreateBox('0_0', { size: 20 }, this).position.setAll(0);
-    CreateBox('0_0', { size: 20 }, this).position.set(50, 0, 0);
-
     this.defaultCamera = camera;
 
-    this.skipFrustumClipping = true;
+    // this.skipFrustumClipping = true;
     this.autoClearDepthAndStencil = true;
     this.autoClear = true;
 
-    this.clearColor = new Color4(0.95, 0.95, 1, 1);
+    this.clearColor = new Color4(0, 0, 0, 1);
     this.ambientColor = new Color3(1, 1, 1);
 
     addInspectorForScene(this);
 
     this.transformedRoot = new TransformNode('_gltf_root', this);
-    this.transformedRoot.scaling.z = -1;
-    this.transformedRoot.rotation.y = Math.PI;
+    this.transformedRoot.scaling.z = 1;
+    this.transformedRoot.position.set(0, 256, 0);
+    this.transformedRoot.rotation.x = toRadians(90);
+
+    camera.parent = this.transformedRoot;
 
     const light2 = new DirectionalLight(
       'DirectionalLight2',
@@ -83,7 +77,5 @@ export class TestScene extends Scene {
 
     const light3 = new HemisphericLight('light', new Vector3(0, 1, 0), this);
     light3.intensity = 1;
-
-    // this.useRightHandedSystem = true;
   }
 }

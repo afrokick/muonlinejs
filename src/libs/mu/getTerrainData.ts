@@ -11,6 +11,7 @@ import { ENUM_WORLD } from '../../../common';
 import {
   downloadBytesBuffer,
   readOJZBufferAsJPEGBuffer,
+  toRadians,
 } from '../../../common/utils';
 import { parseTerrainAttribute } from '../../../common/terrain/parseTerrainAttribute';
 import { parseTerrainHeight } from '../../../common/terrain/parseTerrainHeight';
@@ -197,6 +198,9 @@ export async function getTerrainData(scene: Scene, map: ENUM_WORLD) {
 
   //TODO why?
   terrain.position.x -= 4;
+  terrain.position.y = 256;
+  terrain.rotationQuaternion = null;
+  terrain.rotation.x = toRadians(90);
 
   return { objects };
 }

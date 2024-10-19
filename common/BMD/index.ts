@@ -215,7 +215,7 @@ export class BMDReader extends BaseReader<BMD> {
         const z = dv.getFloat32(offset, true);
         offset += 4;
 
-        const position = new Vector3(x, z, y);
+        const position = new Vector3(x, y, z);
         const v = (mesh.Vertices[i] = new BMDTextureVertex());
         v.Node = node;
         v.Position = position;
@@ -240,7 +240,7 @@ export class BMDReader extends BaseReader<BMD> {
 
         const normal = (mesh.Normals[i] = new BMDTextureNormal());
         normal.Node = node;
-        normal.Normal = new Vector3(x, z, y);
+        normal.Normal = new Vector3(x, y, z);
         normal.BindVertex = bindVertex;
       });
       DataPtr += Size;
@@ -346,7 +346,7 @@ export class BMDReader extends BaseReader<BMD> {
           const z = dv.getFloat32(offset, true);
           offset += 4;
 
-          action.Positions[i] = new Vector3(x, z, y);
+          action.Positions[i] = new Vector3(x, y, z);
         });
         DataPtr += Size;
       }
@@ -370,15 +370,13 @@ export class BMDReader extends BaseReader<BMD> {
 
         for (let m = 0; m < bone.Matrixes.length; m++) {
           const action = actions[m];
-          bone.Matrixes[m] = new BMDBoneMatrix();
+          const bm = (bone.Matrixes[m] = new BMDBoneMatrix());
 
           Size = action.NumAnimationKeys * 12;
 
-          bone.Matrixes[m].Position = new Array(action.NumAnimationKeys).fill(
-            null
-          );
+          bm.Position = new Array(action.NumAnimationKeys).fill(null);
 
-          bone.Matrixes[m].Position.forEach((_, i) => {
+          bm.Position.forEach((_, i) => {
             let offset = DataPtr + i * 12;
             const x = dv.getFloat32(offset, true);
             offset += 4;
@@ -387,16 +385,14 @@ export class BMDReader extends BaseReader<BMD> {
             const z = dv.getFloat32(offset, true);
             offset += 4;
 
-            bone.Matrixes[m].Position[i] = new Vector3(x, z, y);
+            bm.Position[i] = new Vector3(x, y, z);
           });
 
           DataPtr += Size;
 
-          bone.Matrixes[m].Rotation = new Array(action.NumAnimationKeys).fill(
-            null
-          );
+          bm.Rotation = new Array(action.NumAnimationKeys).fill(null);
 
-          bone.Matrixes[m].Rotation.forEach((_, i) => {
+          bm.Rotation.forEach((_, i) => {
             let offset = DataPtr + i * 12;
             const x = dv.getFloat32(offset, true);
             offset += 4;
@@ -405,15 +401,13 @@ export class BMDReader extends BaseReader<BMD> {
             const z = dv.getFloat32(offset, true);
             offset += 4;
 
-            bone.Matrixes[m].Rotation[i] = new Vector3(x, z * -1, y);
+            bm.Rotation[i] = new Vector3(x, y, z);
           });
 
           DataPtr += Size;
 
           // precalculate quaternion
-          bone.Matrixes[m].Quaternion = bone.Matrixes[m].Rotation.map(r =>
-            MathUtils.AngleQuaternion(r)
-          );
+          bm.Quaternion = bm.Rotation.map(r => MathUtils.AngleQuaternion(r));
         }
       }
     }
@@ -425,8 +419,6 @@ export class BMDReader extends BaseReader<BMD> {
     bmd.Meshes = meshes;
     bmd.Bones = bones;
     bmd.Actions = actions;
-
-    console.log(bmd);
 
     return bmd;
   }

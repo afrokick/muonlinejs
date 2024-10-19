@@ -13,7 +13,7 @@ if (APP_STAGE === 'dev' || QA_ENABLED) {
   import('@babylonjs/core/Legacy/legacy');
 }
 
-const canvas = document.querySelector<HTMLCanvasElement>('canvas')!;
+const canvas = document.querySelector('canvas')!;
 
 let useAntialiaing = false;
 
