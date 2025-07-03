@@ -8,7 +8,7 @@ export const CS_PORT = 44405;
 export const WS_HOST = 'ws://localhost';
 export const WS_PORT = 3000;
 
-export const DISABLE_OBJECTS_LOADING = false;
+export const DISABLE_OBJECTS_LOADING = true;
 export const DEBUG_PATHFINDING = false;
 export const DEBUG_SHOW_TERRAIN_ATTRIBUTES = false;
 export const DEBUG_SHOW_BOUNDING_BOXES = false;
