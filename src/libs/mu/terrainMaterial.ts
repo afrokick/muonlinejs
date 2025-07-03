@@ -85,16 +85,16 @@ export function createTerrainMaterial(
     vec3 opaqueColor = vec3(0.0);
     vec3 alphaColor = vec3(0.0);
 
-    ${finalColorStr}
+     ${finalColorStr}
 
-    ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
+     ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
 
     // if(alphaRendered){
     //   ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
     //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
     // }
 
-    // ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
+     ${FINAL_COLOR_VAR_NAME} = vColor.rgba;
   
     gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
   }
