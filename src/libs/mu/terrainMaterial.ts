@@ -119,7 +119,7 @@ export function createTerrainMaterial(
 
   terrainMaterial.fogEnabled = false;
   terrainMaterial.backFaceCulling = true;
-  terrainMaterial.transparencyMode = 1;
+  terrainMaterial.transparencyMode = 0;
 
   const st = Date.now();
 
@@ -135,7 +135,7 @@ export function createTerrainMaterial(
     effect.setTextureArray('textures', textures);
   });
 
-  terrainMaterial.freeze();
+  // terrainMaterial.freeze();
 
   terrainMaterial.onDisposeObservable.addOnce(() => {
     textures.forEach(t => {
