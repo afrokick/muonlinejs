@@ -15,14 +15,10 @@ export function createTerrainMaterial(
       const isWater = i === 5; // || (Texture == 11 && (gMapManager.IsPKField() || IsDoppelGanger2()) //TODO
       return `
   if (m1 >= ${i}.0 && m1 < ${i}.1) {
-      opaqueColor = texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(
-        1
-      )}${isWater ? ` + vec2(WaterMove,GrassWind)` : ''}).rgb;
+      opaqueColor = texture2D(textures[${i}], vUV * 64.0).rgb;
   }
   if (m2 >= ${i}.0 && m2 < ${i}.1) {
-      alphaColor = texture2D(textures[${i}], vUV * ${textureData.scale.toFixed(
-        1
-      )}${isWater ? ` + vec2(WaterMove,GrassWind)` : ''}).rgb;
+      alphaColor = texture2D(textures[${i}], vUV * 64.0).rgb;
       alphaRendered = true;
   }
   `;
