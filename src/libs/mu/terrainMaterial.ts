@@ -15,10 +15,10 @@ export function createTerrainMaterial(
       const isWater = i === 5; // || (Texture == 11 && (gMapManager.IsPKField() || IsDoppelGanger2()) //TODO
       return `
   if (m1 >= ${i}.0 && m1 < ${i}.1) {
-      opaqueColor = texture2D(textures[${i}], vUV * 64.0).rgb;
+      opaqueColor = texture2D(textures[${i}], vUV * 128.0).rgb;
   }
   if (m2 >= ${i}.0 && m2 < ${i}.1) {
-      alphaColor = texture2D(textures[${i}], vUV * 64.0).rgb;
+      alphaColor = texture2D(textures[${i}], vUV * 128.0).rgb;
       alphaRendered = true;
   }
   `;
@@ -85,10 +85,10 @@ export function createTerrainMaterial(
 
     ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
 
-    // if(alphaRendered){
-    //   ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
-    //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
-    // }
+    if(alphaRendered){
+      ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
+      ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
+    }
 
     vec3 f = clamp(${FINAL_COLOR_VAR_NAME}.rgb, 0.0, 1.0);
   
@@ -109,7 +109,7 @@ export function createTerrainMaterial(
       samplers: ['textures'],
       defines: [],
       needAlphaBlending: false,
-      needAlphaTesting: true,
+      needAlphaTesting: false,
     }
   ) as ShaderMaterial;
 
@@ -120,6 +120,9 @@ export function createTerrainMaterial(
   const st = Date.now();
 
   const textures = config.texturesData.map(t => t.texture);
+  const old = textures[0];
+  textures[0] = textures[1];
+  textures[1] = old;
 
   terrainMaterial.onBindObservable.add(m => {
     const effect = m.material?.getEffect();
