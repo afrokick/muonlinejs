@@ -14,10 +14,10 @@ export function createTerrainMaterial(
       const textureData = config.texturesData[i];
       const isWater = i === 5; // || (Texture == 11 && (gMapManager.IsPKField() || IsDoppelGanger2()) //TODO
       return `
-  if (m1 >= ${i}.0 && m1 < ${i}.1) {
+  if (m1 >= ${i}.0 && m1 < ${i}.5) {
       opaqueColor = texture2D(textures[${i}], vUV * 128.0).rgb;
   }
-  if (m2 >= ${i}.0 && m2 < ${i}.1) {
+  if (m2 >= ${i}.0 && m2 < ${i}.5) {
       alphaColor = texture2D(textures[${i}], vUV * 128.0).rgb;
       alphaRendered = true;
   }
@@ -32,14 +32,14 @@ export function createTerrainMaterial(
       vertexSource: `
   precision highp float;
   attribute vec3 position;
-  attribute highp vec2 uv;
-  attribute vec2 uv2;
+  attribute vec2 uv;
+  attribute highp vec2 uv2;
   attribute vec4 color;
   attribute vec4 matricesWeights; // used for alpha blending
   uniform mat4 viewProjection;
   uniform mat4 view;
   uniform mat4 world;
-  varying highp vec2 vUV;
+  varying vec2 vUV;
   varying float vOpaqueTexture;
   varying float vAlphaTexture;
   varying vec4 vColor;
@@ -59,8 +59,8 @@ export function createTerrainMaterial(
       fragmentSource: `
   precision highp float;
   uniform float time;
-  uniform highp sampler2D textures[${config.texturesData.length}];
-  varying highp vec2 vUV;
+  uniform sampler2D textures[${config.texturesData.length}];
+  varying vec2 vUV;
   varying float vOpaqueTexture;
   varying float vAlphaTexture;
   varying vec4 vColor;
@@ -68,8 +68,8 @@ export function createTerrainMaterial(
 
   void main() 
   {
-    float m1 = vOpaqueTexture;
-    float m2 = vAlphaTexture;
+    float m1 = vOpaqueTexture + 0.1;
+    float m2 = vAlphaTexture + 0.1;
     bool alphaRendered = false;
 
     float WaterMove = float(int(time*50.0) % 20000) * 0.0005;
