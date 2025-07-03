@@ -89,10 +89,10 @@ export function createTerrainMaterial(
 
     ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
 
-    if(alphaRendered){
-      ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
-      ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
-    }
+    // if(alphaRendered){
+    //   ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
+    //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
+    // }
 
     ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
   
