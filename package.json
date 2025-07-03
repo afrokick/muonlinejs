@@ -27,9 +27,9 @@
     "pngjs": "7.0.0"
   },
   "dependencies": {
-    "@babylonjs/core": "7.51.1",
-    "@babylonjs/loaders": "7.51.1",
-    "@babylonjs/materials": "7.51.1",
+    "@babylonjs/core": "7.51.2",
+    "@babylonjs/loaders": "7.51.2",
+    "@babylonjs/materials": "7.51.2",
     "miniplex": "2.0.0",
     "mitt": "3.0.1",
     "mobx": "6.13.1",

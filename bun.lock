@@ -4,9 +4,9 @@
     "": {
       "name": "muonlinejs-client",
       "dependencies": {
-        "@babylonjs/core": "7.51.1",
-        "@babylonjs/loaders": "7.51.1",
-        "@babylonjs/materials": "7.51.1",
+        "@babylonjs/core": "7.51.2",
+        "@babylonjs/loaders": "7.51.2",
+        "@babylonjs/materials": "7.51.2",
         "miniplex": "2.0.0",
         "mitt": "3.0.1",
         "mobx": "6.13.1",
@@ -73,11 +73,11 @@
 
     "@babel/types": ["@babel/types@7.28.0", "", { "dependencies": { "@babel/helper-string-parser": "^7.27.1", "@babel/helper-validator-identifier": "^7.27.1" } }, "sha512-jYnje+JyZG5YThjHiF28oT4SIZLnYOcSBb6+SDaFIyzDVSkXQmQQYclJ2R+YxcdmK0AX6x1E5OQNtuh3jHDrUg=="],
 
-    "@babylonjs/core": ["@babylonjs/core@7.51.1", "", {}, "sha512-YSw9CzM2NnkWS305W2Ir1yLgVt8xxasucFL29D2D3GNXMWnzijhTE/Qk1u46KBqt+yXU7B6dpkk7h6Az2aQ14A=="],
+    "@babylonjs/core": ["@babylonjs/core@7.51.2", "", {}, "sha512-ZNlojZIGV87GkxWr+28lfe8flCvzGqDBQKelSWd2/sR3gou83D/RSoScecVlmy79mDPZCM2/4udXVJt1xpF0yw=="],
 
-    "@babylonjs/loaders": ["@babylonjs/loaders@7.51.1", "", { "peerDependencies": { "@babylonjs/core": "^7.0.0", "babylonjs-gltf2interface": "^7.0.0" } }, "sha512-lhoQhwelY4FGq272/TEHyb/ST+YujT04uu8A4PV3iWtjZxOxHNKTM4tmkZ0bb87YtXgkSqe2JRcaVXFaGRekUQ=="],
+    "@babylonjs/loaders": ["@babylonjs/loaders@7.51.2", "", { "peerDependencies": { "@babylonjs/core": "^7.0.0", "babylonjs-gltf2interface": "^7.0.0" } }, "sha512-9YsacDtrZcDIn6dTmwq6dmMjDCmOOMPdr1sUhYiLnFhrcmpTxZ62aCsWFfoeCpZzODOy+G9/zjWo6iRLNqREug=="],
 
-    "@babylonjs/materials": ["@babylonjs/materials@7.51.1", "", { "peerDependencies": { "@babylonjs/core": "^7.0.0" } }, "sha512-+EnMqJRYUf4ShK0pp8821db0Frl/dtEM4i0/E1oEryAqB/D1ox4/WuoUf9yDeO0JNKPEtHifqo2535+joLvmXA=="],
+    "@babylonjs/materials": ["@babylonjs/materials@7.51.2", "", { "peerDependencies": { "@babylonjs/core": "^7.0.0" } }, "sha512-p2ekV2+WAl4N3+s42R63LrxGkHJevB2gksuzWZk6/YKnh+2NlwFQPca1QzwR26NoglCsJhekuy2RXZfGPSmyYQ=="],
 
     "@emnapi/runtime": ["@emnapi/runtime@1.4.3", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-pBPWdu6MLKROBX05wSNKcNb++m5Er+KQ9QkB+WVM+pW2Kx9hoSrVTnu3BdkI5eBLZoKu/J6mW/B6i6bJB2ytXQ=="],
 
