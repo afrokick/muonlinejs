@@ -94,7 +94,7 @@ export function createTerrainMaterial(
     //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
     // }
 
-    ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
+    // ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
   
     gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
   }
