@@ -13,9 +13,7 @@ import { ENUM_WORLD } from './common';
 import { EventBus } from './libs/eventBus';
 import { SoundsManager } from './libs/soundsManager';
 
-if (APP_STAGE === 'dev' || QA_ENABLED) {
-  import('@babylonjs/core/Legacy/legacy');
-}
+import('@babylonjs/core/Legacy/legacy');
 
 const canvas = document.querySelector('canvas')!;
 

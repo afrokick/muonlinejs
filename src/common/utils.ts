@@ -1,4 +1,4 @@
-import { type Scene, Texture } from '../libs/babylon/exports';
+import { Engine, type Scene, Texture } from '../libs/babylon/exports';
 import { resolveUrlToDataFolder } from './resolveUrlToDataFolder';
 
 // like 'C1 04 00 01'
@@ -190,9 +190,10 @@ export async function readOJZBufferAsJPEGBuffer(
     null,
     null,
     ozjBuffer.slice(24),
-    true
+    false,
+    Engine.TEXTUREFORMAT_RGB
   );
-  texture.anisotropicFilteringLevel = 1;
+  texture.anisotropicFilteringLevel = 0;
   texture.isBlocking = false;
   texture.name = tName;
 
