@@ -78,7 +78,7 @@ export function createTerrainMaterial(
 
     float WaterMove = float(int(time*50.0) % 20000) * 0.0005;
     float WindSpeed = float(int(time*200.0) % 72000) * 0.004;
-    float GrassWind = 0.0;//sin(WindSpeed + vXf * 2.0) * 0.1;
+    float GrassWind = 0.0;
   
     vec4 ${FINAL_COLOR_VAR_NAME} = vec4(0.0);
 
@@ -89,17 +89,15 @@ export function createTerrainMaterial(
 
     ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
 
-    // if(alphaRendered){
-    //   ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
-    //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
-    // }
+    if(alphaRendered){
+      ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
+      ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
+    }
 
-    // ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
-
-    // ${FINAL_COLOR_VAR_NAME} = vColor.rgba;
+    ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
+    ${FINAL_COLOR_VAR_NAME}.a = 1.0;
   
-    // gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
-    gl_FragColor = vec4(opaqueColor, 1.0);
+    gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
   }
   `,
     },
