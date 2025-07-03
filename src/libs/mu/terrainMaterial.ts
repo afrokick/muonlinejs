@@ -36,14 +36,14 @@ export function createTerrainMaterial(
       vertexSource: `
   precision highp float;
   attribute vec3 position;
-  attribute vec2 uv;
+  attribute highp vec2 uv;
   attribute vec2 uv2;
   attribute vec4 color;
   attribute vec4 matricesWeights; // used for alpha blending
   uniform mat4 viewProjection;
   uniform mat4 view;
   uniform mat4 world;
-  varying vec2 vUV;
+  varying highp vec2 vUV;
   varying float vOpaqueTexture;
   varying float vAlphaTexture;
   varying vec4 vColor;
@@ -64,7 +64,7 @@ export function createTerrainMaterial(
   precision highp float;
   uniform float time;
   uniform sampler2D textures[${config.texturesData.length}];
-  varying vec2 vUV;
+  varying highp vec2 vUV;
   varying float vOpaqueTexture;
   varying float vAlphaTexture;
   varying vec4 vColor;
@@ -96,11 +96,8 @@ export function createTerrainMaterial(
 
     ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
     ${FINAL_COLOR_VAR_NAME}.a = 1.0;
-
-    opaqueColor = texture(textures[0], vUV * 64.0).rgb;
   
-    // gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
-    gl_FragColor = vec4(opaqueColor, 1.0);
+    gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
   }
   `,
     },
