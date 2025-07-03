@@ -96,8 +96,11 @@ export function createTerrainMaterial(
 
     ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
     ${FINAL_COLOR_VAR_NAME}.a = 1.0;
+
+    opaqueColor = texture(textures[0], vUV * 64.0).rgb;
   
-    gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
+    // gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
+    gl_FragColor = vec4(opaqueColor, 1.0);
   }
   `,
     },
