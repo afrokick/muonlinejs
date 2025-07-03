@@ -59,7 +59,7 @@ export function createTerrainMaterial(
       fragmentSource: `
   precision highp float;
   uniform float time;
-  uniform sampler2D textures[${config.texturesData.length}];
+  uniform highp sampler2D textures[${config.texturesData.length}];
   varying highp vec2 vUV;
   varying float vOpaqueTexture;
   varying float vAlphaTexture;
