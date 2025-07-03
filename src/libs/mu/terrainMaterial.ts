@@ -43,20 +43,12 @@ export function createTerrainMaterial(
   uniform mat4 viewProjection;
   uniform mat4 view;
   uniform mat4 world;
-  varying vec2 vUV;
-  varying float vOpaqueTexture;
-  varying float vAlphaTexture;
   varying vec4 vColor;
-  varying vec4 vAlphaColor;
 
   void main() {
-      vec4 p = vec4(position, 1.);
+      vec4 p = vec4(position, 1.0);
       vec4 worldPosition = world * p;
-      vUV = uv;
-      vOpaqueTexture = uv2.x;
-      vAlphaTexture = uv2.y;
       vColor = color;
-      vAlphaColor = matricesWeights;
       gl_Position = viewProjection * worldPosition;
   }
   `,
@@ -64,11 +56,7 @@ export function createTerrainMaterial(
   precision highp float;
   uniform float time;
   uniform sampler2D textures[${config.texturesData.length}];
-  varying vec2 vUV;
-  varying float vOpaqueTexture;
-  varying float vAlphaTexture;
   varying vec4 vColor;
-  varying vec4 vAlphaColor;
 
   void main() 
   {
