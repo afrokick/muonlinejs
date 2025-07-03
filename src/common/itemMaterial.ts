@@ -14,7 +14,7 @@ export function createItemMaterial(scene: Scene) {
 
   simpleMaterial.specularColor.setAll(0);
 
-  simpleMaterial.AddUniform(ITEM_OPTIONS_UNIFORM_NAME, 'int', 0);
+  simpleMaterial.AddUniform(ITEM_OPTIONS_UNIFORM_NAME, 'float', 0);
   simpleMaterial.AddUniform('time', 'float', 0);
 
   simpleMaterial.Fragment_Definitions(`
@@ -35,7 +35,7 @@ export function createItemMaterial(scene: Scene) {
   `);
 
   simpleMaterial.Fragment_Before_FragColor(`
-    int iItemOptions = ${ITEM_OPTIONS_UNIFORM_NAME};
+    int iItemOptions = int(${ITEM_OPTIONS_UNIFORM_NAME});
     int iItemLvl = iItemOptions & 0x0F;
     bool bIsExcellent = (iItemOptions & 0x10) != 0;
     vec3 vPartColor = vec3(1.0);
@@ -105,7 +105,7 @@ export function createItemMaterial(scene: Scene) {
         itemOptions |= 0x10;
       }
 
-      effect.setInt(ITEM_OPTIONS_UNIFORM_NAME, itemOptions);
+      effect.setFloat(ITEM_OPTIONS_UNIFORM_NAME, itemOptions);
 
       effect.setTexture('diffuseSampler', mesh.metadata!.diffuseTexture);
 
