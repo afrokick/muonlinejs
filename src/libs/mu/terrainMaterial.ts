@@ -43,12 +43,20 @@ export function createTerrainMaterial(
   uniform mat4 viewProjection;
   uniform mat4 view;
   uniform mat4 world;
+  varying vec2 vUV;
+  varying float vOpaqueTexture;
+  varying float vAlphaTexture;
   varying vec4 vColor;
+  varying vec4 vAlphaColor;
 
   void main() {
-      vec4 p = vec4(position, 1.0);
+      vec4 p = vec4(position, 1.);
       vec4 worldPosition = world * p;
+      vUV = uv;
+      vOpaqueTexture = uv2.x;
+      vAlphaTexture = uv2.y;
       vColor = color;
+      vAlphaColor = matricesWeights;
       gl_Position = viewProjection * worldPosition;
   }
   `,
@@ -56,11 +64,42 @@ export function createTerrainMaterial(
   precision highp float;
   uniform float time;
   uniform sampler2D textures[${config.texturesData.length}];
+  varying vec2 vUV;
+  varying float vOpaqueTexture;
+  varying float vAlphaTexture;
   varying vec4 vColor;
+  varying vec4 vAlphaColor;
 
   void main() 
   {
-    gl_FragColor = vec4(vColor.rgb, 1.0);
+    float m1 = vOpaqueTexture;
+    float m2 = vAlphaTexture;
+    bool alphaRendered = false;
+
+    float WaterMove = float(int(time*50.0) % 20000) * 0.0005;
+    float WindSpeed = float(int(time*200.0) % 72000) * 0.004;
+    float GrassWind = 0.0;//sin(WindSpeed + vXf * 2.0) * 0.1;
+  
+    vec4 ${FINAL_COLOR_VAR_NAME} = vec4(0.0);
+
+    vec3 opaqueColor = vec3(0.0);
+    vec3 alphaColor = vec3(0.0);
+
+    ${finalColorStr}
+
+    ${FINAL_COLOR_VAR_NAME} = vec4(opaqueColor, 1.0);
+
+    // if(alphaRendered){
+    //   ${FINAL_COLOR_VAR_NAME} *= (1.0 - vAlphaColor.a);
+    //   ${FINAL_COLOR_VAR_NAME} += vec4(alphaColor, 1.0) * vAlphaColor.a;
+    // }
+
+    // ${FINAL_COLOR_VAR_NAME} *= vColor.rgba;
+
+    // ${FINAL_COLOR_VAR_NAME} = vColor.rgba;
+  
+    // gl_FragColor = clamp(${FINAL_COLOR_VAR_NAME}, 0.0, 1.0);
+    gl_FragColor = vec4(opaqueColor, 1.0);
   }
   `,
     },
