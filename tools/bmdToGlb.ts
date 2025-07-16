@@ -45,9 +45,7 @@ async function convertImageToWebP(image: Uint8Array): Promise<Uint8Array> {
 
 const SCALE_MULTIPLIER = 0.01;
 
-const glob = new Glob(
-  `**/*{${BMD_EXT.toUpperCase()},${BMD_EXT.toLowerCase()}}`
-);
+const glob = new Glob(`**/*{${BMD_EXT.toUpperCase()},${BMD_EXT}}`);
 
 const convertVec3 = (v: { x: number; y: number; z: number }) => v;
 //  ({

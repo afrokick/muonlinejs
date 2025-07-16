@@ -1,14 +1,8 @@
 import { unlinkSync } from 'node:fs';
 import { Glob } from 'bun';
+import { DATA_FOLDER, JPG_EXT, OZJ_EXT } from './shared';
 
-const OZJ_EXT = '.OZJ';
-const JPG_EXT = '.jpg';
-
-const DATA_FOLDER = __dirname + `/../Data/`;
-
-const glob = new Glob(
-  `**/*{${OZJ_EXT.toUpperCase()},${OZJ_EXT.toLowerCase()}}`
-);
+const glob = new Glob(`**/*{${OZJ_EXT.toUpperCase()},${OZJ_EXT}}`);
 
 let counter = 0;
 for (const ozjFileName of glob.scanSync(DATA_FOLDER)) {
