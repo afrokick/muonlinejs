@@ -5,6 +5,7 @@ import { MapsList } from './components/mapsList';
 import { BottomBar } from './components/bottomBar';
 import { CharacterInfo } from './components/characterInfo';
 import { Inventory } from './components/inventory';
+import { Skills } from './components/skills';
 
 const HUD = observer(() => {
   return (
@@ -14,6 +15,7 @@ const HUD = observer(() => {
         <Inventory />
         <CharacterInfo />
       </div>
+      <Skills />
       <MapsList />
     </div>
   );
